@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Resultados Probabilísticos{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="/app/Hernia/static/styles/resultados.css">
+<div class="container mx-auto mt-10 max-w-3xl">
+    <h1 class="title text-center text-3xl font-bold text-black-500 p-4 mb-6 bg-white bg-opacity-50 backdrop-filter backdrop-blur-md rounded-lg shadow-md">Resultados Probabilísticos</h1>
+
+    <div class="flex gap-6">
+        <div class="card bg-white bg-opacity-50 backdrop-filter backdrop-blur-md rounded-lg shadow-md p-4 flex-1">
+            <h2 class="text-xl font-semibold text-gray-1000 mb-4">Probabilidades</h2>
+            <ul class="typing-effect list-none p-0 m-0 text-center">
+                {% if grupo %}
+                    <li class="text-red-500">{{ grupo }}: {{ porcentaje }}% de confianza</li>
+                {% else %}
+                    <li class="no-data-message text-red-500">No hay datos cargados</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="card-andres bg-white bg-opacity-50 backdrop-filter backdrop-blur-md rounded-lg shadow-md p-4 flex-1">
+            <div class="card-image">
+                {% if imagen_url %}
+                    <img src="{{ imagen_url }}" alt="Imagen subida" class="w-full h-full object-contain">
+                {% else %}
+                    <img src="/app/Hernia/static/images/usuario-logo3.png" alt="Imagen por defecto" class="w-full h-auto rounded-t-lg ">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="flex justify-center mt-6">
+        <a href="{% url 'index' %}" class="bg-blue-500 text-white py-1 px-3 rounded-md font-semibold hover:bg-blue-600 hover:scale-105 transition-transform duration-300 transform active:scale-95">
+            Regresar
+        </a>
+    </div>
+</div>
+{% endblock %}

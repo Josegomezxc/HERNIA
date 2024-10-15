@@ -206,7 +206,8 @@ def subir_imagen(request):
 
     return render(request, 'subir_imagen.html', {'form': form})
 
-
+def resultados(request):
+    return render(request, 'resultados.html')
 
 def user_profile_view(request):
     user = request.user
