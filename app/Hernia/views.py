@@ -11,7 +11,6 @@ from django.contrib import messages
 import pytz
 from .forms import ImagenForm, RegistroForm, ProfileForm, UserForm
 from .models import Imagen, Profile
-from app.Hernia.ia_model.predict import predict_image 
 import hashlib
 from django.core.files.storage import default_storage
 from django.contrib.auth.views import PasswordResetCompleteView
@@ -24,6 +23,11 @@ from reportlab.lib.units import inch
 from reportlab.lib.colors import HexColor
 from io import BytesIO
 from .models import Historial
+from inference_sdk import InferenceHTTPClient
+from PIL import Image, ImageDraw
+import matplotlib.pyplot as plt
+import hashlib
+import pytz
 
 
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
@@ -51,23 +55,68 @@ def editar_perfil(request):
     return render(request, 'editar_perfil.html', {'user_form': user_form, 'profile_form': profile_form})
 
 
-def entrenar_modelo(request):
-    script_path = os.path.join(settings.BASE_DIR, 'app/Hernia/ia_model/train_model.py')
+def guardar_resultados(request):
+    if request.method == 'POST':
+        historial = Historial(
+            user=request.user,
+            imagen=request.FILES.get('imagen'),
+            porcentaje=request.POST.get('porcentaje'),
+            grupo=request.POST.get('grupo'),
+            pdf_url=request.POST.get('pdf_url')
+        )
+        historial.save()
+        return redirect('resultados')
 
-    if not os.path.exists(script_path):
-        return HttpResponse(f"Error: El archivo de script no se encuentra en {script_path}", status=404)
+def historial_medico(request):
+    historial = Historial.objects.filter(user=request.user).order_by('-fecha_imagen')
+    # context = {
+    #     'historial': historial
+    # }
+    paginator = Paginator(historial, 4)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'historial_medico.html',{'page_obj': page_obj})
 
+
+def historial_medico_general(request):
+
+    historial = Historial.objects.all().order_by('-fecha_imagen')
+
+    paginator = Paginator(historial, 4)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj
+    }
     
-    result = subprocess.run(['python', script_path], capture_output=True, text=True)
+    return render(request, 'historial_medico_general.html', context)
 
-    
-    salida = result.stdout + "\n" + result.stderr
+def eliminar_historial_general(request, id):
+    historial_item = get_object_or_404(Historial, id=id)
 
-    return HttpResponse(f"<pre>{salida}</pre>")
+    if request.method == "POST":
+
+        if historial_item.imagen:
+            historial_item.imagen.delete()  
+        
+        historial_item.delete()
+        messages.success(request, 'El registro ha sido eliminado correctamente.')
+
+    return redirect('historial_med_gene')
 
 
+def eliminar_historial(request, id):
+    historial_item = get_object_or_404(Historial, id=id, user=request.user)
 
+    if request.method == "POST":
+        if historial_item.imagen:
+            historial_item.imagen.delete()
+        
+        historial_item.delete()
+        messages.success(request, 'El registro ha sido eliminado correctamente.')
 
+    return redirect('historial_med')
 
 @login_required
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -135,7 +184,134 @@ def password_reset_view(request):
     return render(request, 'password_reset.html')
 
 
-#----------------------------
+
+def generar_pdf_general(request):
+
+    buffer = BytesIO()
+
+
+    p = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    historiales = Historial.objects.all()
+
+    # Configurar colores
+    titulo_color = HexColor('#4A90E2')  
+    texto_color = HexColor('#333333')  
+    imagen_fondo_color = HexColor('#F0F0F0') 
+
+
+    p.setFont("Helvetica", 12)
+    p.setFillColor(texto_color)
+
+    items_por_pagina = 0
+
+    posiciones_y = [height - 1.5 * inch, height - 5.5 * inch]  
+    for index, item in enumerate(historiales):
+
+        if items_por_pagina == 2:
+            p.showPage()
+            items_por_pagina = 0  
+        y_position = posiciones_y[items_por_pagina]
+
+
+        p.setFont("Helvetica-Bold", 16)
+        p.setFillColor(titulo_color)
+        p.drawString(1 * inch, y_position + 0.5 * inch, "Historial Médico del Usuario")
+
+
+        p.setFont("Helvetica", 12)
+        p.setFillColor(texto_color)
+
+        fecha_formateada = item.fecha_imagen.strftime('%d-%m-%Y')
+        hora_formateada = item.fecha_imagen.strftime('%H:%M:%S')
+
+
+        p.drawString(1 * inch, y_position, f"Nombre: {item.user.username}")
+        p.drawString(1 * inch, y_position - 0.5 * inch, f"Fecha: {fecha_formateada}")
+        p.drawString(1 * inch, y_position - 1 * inch, f"Hora: {hora_formateada}")
+        p.drawString(1 * inch, y_position - 1.5 * inch, f"Porcentaje: {item.porcentaje}%")
+        p.drawString(1 * inch, y_position - 2 * inch, f"Tipo de Hernia: {item.grupo}")
+
+
+        if item.imagen:
+            p.setFillColor(imagen_fondo_color)
+            p.rect(5 * inch - 0.1 * inch, y_position - 2.5 * inch - 0.1 * inch, 2.7 * inch, 3.2 * inch, fill=1)
+            p.drawImage(item.imagen.path, 5 * inch, y_position - 2.5 * inch, width=2.5 * inch, height=3 * inch, mask='auto')
+        else:
+            p.drawString(5 * inch, y_position - 1.5 * inch, "Imagen no disponible")
+
+        items_por_pagina += 1
+
+
+    p.save()
+
+
+    pdf = buffer.getvalue()
+    buffer.close()
+
+ 
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="historial_medico_general.pdf"'
+    return response
+
+
+def generar_pdf_fila(request, id):
+
+    buffer = BytesIO()
+
+
+    p = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+
+    item = get_object_or_404(Historial, id=id)
+
+
+    fecha_formateada = item.fecha_imagen.strftime('%d-%m-%Y')
+    hora_formateada = item.fecha_imagen.strftime('%H:%M:%S')
+
+
+    titulo_color = HexColor('#4A90E2')
+    texto_color = HexColor('#333333') 
+    imagen_fondo_color = HexColor('#F0F0F0')  
+
+
+    p.setFont("Helvetica-Bold", 16)
+    p.setFillColor(titulo_color)
+    p.drawString(2.5 * inch, height - 1 * inch, "Historial Médico del Usuario")
+
+    p.setFont("Helvetica", 12)
+    p.setFillColor(texto_color)
+
+
+    p.drawString(1 * inch, height - 1.5 * inch, f"Nombre: {item.user.username}")
+    p.drawString(1 * inch, height - 2 * inch, f"Fecha: {fecha_formateada}")
+    p.drawString(1 * inch, height - 2.5 * inch, f"Hora: {hora_formateada}")
+    p.drawString(1 * inch, height - 3 * inch, f"Porcentaje: {item.porcentaje}%")
+    p.drawString(1 * inch, height - 3.5 * inch, f"Tipo de Hernia: {item.grupo}")
+
+
+    if item.imagen:
+        p.setFillColor(imagen_fondo_color)  
+        p.rect(5 * inch - 0.1 * inch, height - 4.5 * inch - 0.1 * inch, 2.7 * inch, 3.2 * inch, fill=1) 
+        p.drawImage(item.imagen.path, 5 * inch, height - 4.5 * inch, width=2.5 * inch, height=3 * inch, mask='auto')
+    else:
+        p.drawString(5 * inch, height - 5 * inch, "Imagen no disponible")
+
+
+    p.showPage()
+    p.save()
+
+
+    pdf = buffer.getvalue()
+    buffer.close()
+
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="historial_medico_fila.pdf"'
+    return response
+
 
 
 def register_view(request):
@@ -160,28 +336,82 @@ def register_view(request):
 
 
 
-
+# Configurar el cliente de Roboflow
+CLIENT = InferenceHTTPClient(
+    api_url="https://outline.roboflow.com",
+    api_key="8HZzIhc5cRGKVeheO0R7"
+)
 
 def subir_imagen(request):
     if request.method == 'POST':
         form = ImagenForm(request.POST, request.FILES)
         if form.is_valid():
-            imagen_obj = form.save(commit=False)  
+            imagen_obj = form.save(commit=False)
 
-            
+            # Encriptar el nombre de la imagen
             original_name = request.FILES['imagen'].name
             hash_object = hashlib.sha256(original_name.encode())
-            encrypted_name = hash_object.hexdigest() + '.' + original_name.split('.')[-1]  
-
-            
+            encrypted_name = hash_object.hexdigest() + '.' + original_name.split('.')[-1]
             imagen_obj.imagen.name = encrypted_name
 
             imagen_obj.save()
 
-            image_path = imagen_obj.imagen.path  
+            # Realizar la predicción
+            image_path = imagen_obj.imagen.path  # Ruta local de la imagen guardada
+            result = CLIENT.infer(image_path, model_id="proy_2/1")
 
-            grupo, porcentaje = predict_image(image_path)
-            
+            # Cargar la imagen original
+            img = Image.open(image_path)
+            draw = ImageDraw.Draw(img)
+
+            # Obtener las predicciones del resultado
+            predictions = result.get('predictions', [])
+
+            # Dibujar las predicciones sobre la imagen
+            for pred in predictions:
+                x_center = pred['x']
+                y_center = pred['y']
+                box_width = pred['width']
+                box_height = pred['height']
+
+                # Calcular las coordenadas del cuadro delimitador (bounding box)
+                x_min = x_center - box_width / 2
+                y_min = y_center - box_height / 2
+                x_max = x_center + box_width / 2
+                y_max = y_center + box_height / 2
+
+                # Dibujar el cuadro (bounding box) en la imagen
+                draw.rectangle([x_min, y_min, x_max, y_max], outline="red", width=3)
+                draw.text((x_min, y_min - 10), f"{pred['class']} {pred['confidence']:.2f}", fill="red")
+
+            # Guardar la imagen con los cuadros de predicción
+            img.save(image_path)
+
+            # Determinar el diagnóstico
+            if result['predictions'] and result['predictions'][0]['class']:
+                class_prediction = result['predictions'][0]['class']
+                if class_prediction == 'Sin Hernia':
+                    grupo = "Sin Hernia"
+                    print("El diagnóstico es Sin hernia.")
+                elif class_prediction == 'Hernia':
+                    grupo = "Hernia"
+                    print("El diagnóstico es una Hernia.")
+            else:
+                grupo = "No se encontró una predicción válida."
+                print("El diagnóstico no es válido.")
+
+            porcentaje = round(result['predictions'][0]['confidence'], 2) if result['predictions'] else 0
+
+            # Guardar en el historial
+            historial = Historial(
+                user=request.user,
+                imagen=imagen_obj.imagen,
+                porcentaje=porcentaje,
+                grupo=grupo,
+            )
+            historial.save()
+
+            # Preparar los datos para la vista de resultados
             ecuador_tz = pytz.timezone('America/Guayaquil')
             fecha_imagen_local = imagen_obj.fecha.astimezone(ecuador_tz)
 
@@ -192,19 +422,12 @@ def subir_imagen(request):
                 'fecha_imagen': fecha_imagen_local
             }
 
-            historial = Historial(
-                user=request.user,
-                imagen=imagen_obj.imagen,
-                porcentaje=porcentaje,
-                grupo=grupo,
-            )
-            historial.save()
-            
             return render(request, 'resultados.html', context)
     else:
         form = ImagenForm()
 
     return render(request, 'subir_imagen.html', {'form': form})
+
 
 def resultados(request):
     return render(request, 'resultados.html')

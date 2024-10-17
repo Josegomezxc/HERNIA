@@ -17,10 +17,15 @@ urlpatterns = [
     path('register/', views.register_view, name='register'), 
     path('subir/', views.subir_imagen, name='subir_imagen'),
     path('resultados/', views.resultados, name='resultados'),
+    path('historial_med/', views.historial_medico, name='historial_med'),
+    path('historial_med_gene/', views.historial_medico_general, name='historial_med_gene'),
+    path('historial/eliminar/<int:id>/', views.eliminar_historial, name='eliminar_historial'),
+    path('historial/eliminar/gene/<int:id>/', views.eliminar_historial_general, name='eliminar_historial_gene'),
     path('perfil/', views.profile_view, name='profile'),
-    path('entrenar_modelo/', views.entrenar_modelo, name='entrenar_modelo'),
+    # path('entrenar_modelo/', views.entrenar_modelo, name='entrenar_modelo'),
     path('editar-perfil/', views.editar_perfil, name='editar_perfil'),
-
+    path('descargar_pdf_general/', views.generar_pdf_general, name='generar_pdf_general'),
+    path('generar_pdf_fila/<int:id>/', views.generar_pdf_fila, name='generar_pdf_fila'),
     
     # URLs para el restablecimiento de contraseñas
     path('password_reset/', auth_views.PasswordResetView.as_view(

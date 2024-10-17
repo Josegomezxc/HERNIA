@@ -73,6 +73,24 @@
                         <p class="dark:text-white text-black text-center">Obtén resultados detallados</p>
                     </div>
                 </a>
+                <!-- Módulo: Historial Medico del Usuario -->
+                <a href="{% url 'historial_med' %}" class="module-card bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 max-w-xs transform transition-transform duration-300 hover:scale-105">
+                    <div class="module-card-content">
+                        <img src="{% static 'images/radiografia-de-huesos.png' %}" alt="Resultados Probabilísticos" class="module-icon">
+                        <h3 class="text-lg font-semibold dark:text-white text-black text-center">Hisorial Medico</h3>
+                        <p class="dark:text-white text-black text-center">Obtenga su Historial Medico Detallado</p>
+                    </div>
+                </a>
+                <!-- Módulo: Historial Medico General (Visible solo para admin) -->
+                {% if user.is_superuser %}
+                    <a href="{% url 'historial_med_gene' %}" class="module-card bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 max-w-xs transform transition-transform duration-300 hover:scale-105">
+                        <div class="module-card-content">
+                            <img src="{% static 'images/general.png' %}" alt="Historial Médico General" class="module-icon">
+                            <h3 class="text-lg font-semibold dark:text-white text-black text-center">Historial Médico General</h3>
+                            <p class="dark:text-white text-black text-center">Información del Historial General</p>
+                        </div>
+                    </a>
+                {% endif %}
             </div>
         </div>
     </div>
