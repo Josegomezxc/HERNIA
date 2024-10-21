@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import os
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,8 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'app.Hernia.apps.HerniaConfig'
-    # 'storages'
+    'app.Hernia.apps.HerniaConfig',
+    'storages'
 ]
 
 MIDDLEWARE = [
@@ -128,8 +129,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
-    BASE_DIR /'static',
+    BASE_DIR /'app/Hernia/static',
 ]
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -147,33 +149,26 @@ EMAIL_HOST_PASSWORD = 'pqyt xrkq nlhf pacn'
 
 
 
-# AWS S3
+#AWS S3
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME')
+AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+AWS_S3_FILE_OVERWRITE = False
 
-# # Configuración básica de AWS S3
-# AWS_ACCESS_KEY_ID = 'AKIAXKPUZTXFAJK5OCM5'
-# AWS_SECRET_ACCESS_KEY = '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'
-# AWS_STORAGE_BUCKET_NAME = 'hernias3andres'
-# AWS_S3_REGION_NAME = 'us-east-1'  # Ejemplo: 'us-west-1'
-# AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+# Django 4.2 >
 
-# # Si deseas archivos públicos por defecto
-# AWS_DEFAULT_ACL = None
+STORAGES = {
 
-# # Almacenamiento de archivos estáticos
-# STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-# # Opcional: configuraciones adicionales
-# AWS_QUERYSTRING_AUTH = False  # Para evitar URLs con tokens de acceso
-
-
-# # settings.py
-
-# STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
-# MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
-
-# # Para hacer referencia a las rutas estáticas
-# STATICFILES_DIRS = [BASE_DIR / 'app' / 'Hernia' / 'static',]  # Ajusta según la estructura de tu proyecto
-
-# # Si deseas manejar archivos de medios en S3
-# MEDIA_ROOT = BASE_DIR / 'media'
+    # Media file (image) management   
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+    },
+    
+    # CSS and JS file management
+    "staticfiles": {
+        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+    },
+}
 
