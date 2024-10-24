@@ -1,0 +1,121 @@
+/*styles para modo oscuro*/
+/* styles.css */
+
+body {
+    background-color: #f5f5f5; /* Color de fondo claro por defecto */
+    color: #333; /* Color de texto claro por defecto */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar {
+    background-color: #fff; /* Color de fondo claro para la navbar */
+    padding: 1rem;
+}
+
+.logo-img {
+    height: 3rem; /* Tamaño del logo */
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+}
+
+.toggle-btn {
+    background-color: #007bff; /* Color del botón */
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+
+.card {
+    background-color: #fff; /* Color de fondo claro para las tarjetas */
+    padding: 1rem;
+    margin: 0.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 100%;
+    max-width: 300px; /* Ajusta el tamaño del módulo */
+    height: 350px; /* Ajusta la altura del módulo */
+}
+
+.card img {
+    width: 100px; /* Tamaño del ícono */
+    height: 100px; /* Tamaño del ícono */
+    margin-bottom: 20px; /* Espacio entre el ícono y el texto */
+}
+
+/* Estilos para modo oscuro */
+.dark {
+    background-color: #333; /* Color de fondo oscuro */
+    color: #f5f5f5; /* Color de texto oscuro */
+}
+
+.dark .navbar {
+    background-color: #222; /* Color de fondo oscuro para la navbar */
+}
+
+.dark .card {
+    background-color: #444; /* Color de fondo oscuro para las tarjetas */
+}
+
+/* styles.css */
+
+.alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #444;
+    color: #fff;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.alert.hidden {
+    display: none;
+}
+
+.alert.hide {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.alert-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.close-btn {
+    cursor: pointer;
+    font-size: 20px;
+}
+
+
+.typing-effect {
+    white-space: nowrap;
+    overflow: hidden;
+    display: inline-block;
+    animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1.25rem;
+    color: #333;
+    text-align: center; /* Asegura que el texto esté centrado dentro del contenedor */
+}
+
+@keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+@keyframes blink-caret {
+    from, to { border-color: transparent; }
+    50% { border-color: black; }
+}
+

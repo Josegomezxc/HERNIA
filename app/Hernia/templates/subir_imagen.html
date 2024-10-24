@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Subir Imagen de Radiografía{% endblock %}
+
+{% block content %}
+    <div class="bg-white bg-opacity-50 backdrop-filter backdrop-blur-md p-8 rounded-lg shadow-lg w-full max-w-md mx-auto"> <!-- Transparencia aplicada -->
+        <h2 class="text-2xl font-semibold text-gray-800 text-center mb-6">Subir Imagen</h2>
+        
+        {% load extras %}
+        
+        <form method="POST" enctype="multipart/form-data" class="space-y-6" id="uploadForm">
+            {% csrf_token %}
+            
+            <div>
+                <label for="titulo" class="block text-sm font-medium">Título</label>
+                {{ form.titulo|add_class:"mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" }}
+            </div>
+
+            <div>
+                <label for="imagen" class="block text-sm font-medium">Seleccionar Imagen</label>
+                {{ form.imagen|add_class:"mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" }}
+            </div>
+
+            <div>
+                <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-md font-semibold hover:bg-blue-600 hover:scale-105 transition-transform duration-300 transform active:scale-95 w-full">
+                    Subir
+                </button>
+            </div>
+            <div>
+                <a href="{% url 'index' %}" class="bg-blue-500 text-white py-2 px-4 rounded-md font-semibold hover:bg-blue-600 hover:scale-105 transition-transform duration-300 transform active:scale-95 w-full text-center inline-block">
+                    Regresar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/app/Hernia/static/js/subir_imagen.js"></script>
+{% endblock %}
