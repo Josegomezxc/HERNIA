@@ -108,7 +108,11 @@ class UserForm(UserChangeForm):
     class Meta:
         model = User
         fields = ['username', 'email']  
-        
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError('El correo electrónico ya está en uso.')
+        return email
         
 
 
