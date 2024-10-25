@@ -51,8 +51,7 @@ def editar_perfil(request):
             profile_form.save()
             messages.success(request, 'Perfil actualizado exitosamente')
             return redirect('profile')
-        else:
-            messages.error(request, 'Error al actualizar el perfil')
+        
     else:
         user_form = UserForm(instance=request.user)
         profile_form = ProfileForm(instance=request.user.profile)
@@ -197,11 +196,9 @@ def generar_pdf_general(request):
     p = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
 
-    # Verifica si el usuario es un administrador
     if request.user.is_superuser:
         historiales = Historial.objects.all()
     else:
-        # Si es un usuario normal, solo obtiene su historial
         historiales = Historial.objects.filter(user=request.user)
 
     # Configurar colores
@@ -238,30 +235,25 @@ def generar_pdf_general(request):
         p.drawString(1 * inch, y_position - 1.5 * inch, f"Porcentaje: {item.porcentaje}%")
         p.drawString(1 * inch, y_position - 2 * inch, f"Tipo de Hernia: {item.grupo}")
 
-        # Verificar si hay una imagen
         if item.imagen:
             p.setFillColor(imagen_fondo_color)
             p.rect(5 * inch - 0.1 * inch, y_position - 2.5 * inch - 0.1 * inch, 2.7 * inch, 3.2 * inch, fill=1)
 
-            # Descargar la imagen desde la URL
             image_url = item.imagen.url
             response = requests.get(image_url)
 
-            # Verificar el estado de la respuesta
             if response.status_code != 200:
                 print(f"Error al descargar la imagen: {response.status_code}")
                 p.drawString(5 * inch, y_position - 1.5 * inch, "Imagen no disponible")
                 items_por_pagina += 1
-                continue  # Salta al siguiente item
+                continue  
 
-            # Verificar que el contenido no esté vacío
             if not response.content:
                 print("El contenido de la imagen está vacío.")
                 p.drawString(5 * inch, y_position - 1.5 * inch, "Imagen no disponible")
                 items_por_pagina += 1
-                continue  # Salta al siguiente item
+                continue  
 
-            # Abrir la imagen y convertirla a formato adecuado
             try:
                 image_data = BytesIO(response.content)
                 img = Image.open(image_data)
@@ -270,17 +262,14 @@ def generar_pdf_general(request):
                 print(f"Error al abrir la imagen: {e}")
                 p.drawString(5 * inch, y_position - 1.5 * inch, "Error al cargar la imagen")
                 items_por_pagina += 1
-                continue  # Salta al siguiente item
+                continue  
 
-            # Crear un archivo temporal para almacenar la imagen
             with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
                 img_rgb.save(temp_file, format='JPEG')
-                temp_file_path = temp_file.name  # Guardar la ruta del archivo temporal
+                temp_file_path = temp_file.name  
 
-            # Dibujar la imagen en el PDF
             p.drawImage(temp_file_path, 5 * inch, y_position - 2.5 * inch, width=2.5 * inch, height=3 * inch, mask='auto')
 
-            # Eliminar el archivo temporal después de usarlo
             os.remove(temp_file_path)
         else:
             p.drawString(5 * inch, y_position - 1.5 * inch, "Imagen no disponible")
@@ -333,24 +322,19 @@ def generar_pdf_fila(request, id):
         p.setFillColor(imagen_fondo_color)  
         p.rect(5 * inch - 0.1 * inch, height - 4.5 * inch - 0.1 * inch, 2.7 * inch, 3.2 * inch, fill=1) 
         
-        # Descargar la imagen desde la URL
         image_url = item.imagen.url
         response = requests.get(image_url)
         image_data = BytesIO(response.content)
 
-        # Abrir la imagen y convertirla a formato adecuado
         img = Image.open(image_data)
         img_rgb = img.convert('RGB')
 
-        # Crear un archivo temporal para almacenar la imagen
         with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
             img_rgb.save(temp_file, format='JPEG')
-            temp_file_path = temp_file.name  # Guardar la ruta del archivo temporal
+            temp_file_path = temp_file.name  
 
-        # Dibujar la imagen en el PDF
         p.drawImage(temp_file_path, 5 * inch, height - 4.5 * inch, width=2.5 * inch, height=3 * inch, mask='auto')
 
-        # Eliminar el archivo temporal después de usarlo
         os.remove(temp_file_path)
     else:
         p.drawString(5 * inch, height - 5 * inch, "Imagen no disponible")
@@ -396,14 +380,13 @@ CLIENT = InferenceHTTPClient(
     api_key="8HZzIhc5cRGKVeheO0R7"
 )
 
-@login_required
+
 def subir_imagen(request):
     if request.method == 'POST':
         form = ImagenForm(request.POST, request.FILES)
         if form.is_valid():
             imagen_obj = form.save(commit=False)
 
-            # Encriptar el nombre de la imagen
             original_name = request.FILES['imagen'].name
             hash_object = hashlib.sha256(original_name.encode())
             encrypted_name = hash_object.hexdigest() + '.' + original_name.split('.')[-1]
@@ -411,50 +394,40 @@ def subir_imagen(request):
 
             imagen_obj.save()
 
-            # Descargar la imagen desde S3 usando la URL
             image_url = imagen_obj.imagen.url
             response = requests.get(image_url)
             image_data = BytesIO(response.content)
 
-            # Cargar la imagen usando OpenCV desde el buffer de memoria
             image_pil = Image.open(image_data).convert('RGB')
             img_cv2 = np.array(image_pil)
             img_cv2 = cv2.cvtColor(img_cv2, cv2.COLOR_RGB2BGR)
 
-            # Realizar la predicción
             result = CLIENT.infer(image_url, model_id="proy_2/1")
 
-            # Obtener las predicciones del resultado
             predictions = result.get('predictions', [])
 
-            # Dibujar las predicciones sobre la imagen
             for pred in predictions:
                 x_center = pred['x']
                 y_center = pred['y']
                 box_width = pred['width']
                 box_height = pred['height']
 
-                # Calcular las coordenadas del cuadro delimitador (bounding box)
                 x_min = int(x_center - box_width / 2)
                 y_min = int(y_center - box_height / 2)
                 x_max = int(x_center + box_width / 2)
                 y_max = int(y_center + box_height / 2)
 
-                # Dibujar el cuadro (bounding box) en la imagen
                 cv2.rectangle(img_cv2, (x_min, y_min), (x_max, y_max), (0, 0, 255), 2)
                 cv2.putText(img_cv2, f"{pred['class']} {pred['confidence']:.2f}", (x_min, y_min - 10),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
-            # Convertir la imagen de nuevo a PIL para poder subirla a S3
             img_pil_final = Image.fromarray(cv2.cvtColor(img_cv2, cv2.COLOR_BGR2RGB))
             buffer = BytesIO()
             img_pil_final.save(buffer, format="JPEG")
             buffer.seek(0)
 
-            # Sobrescribir la imagen en S3
             imagen_obj.imagen.save(encrypted_name, buffer)
 
-            # Determinar el diagnóstico
             if result['predictions'] and result['predictions'][0]['class']:
                 class_prediction = result['predictions'][0]['class']
                 if class_prediction == 'Sin Hernia':
@@ -469,7 +442,6 @@ def subir_imagen(request):
 
             porcentaje = round(result['predictions'][0]['confidence'], 2) if result['predictions'] else 0
 
-            # Guardar en el historial
             historial = Historial(
                 user=request.user,
                 imagen=imagen_obj.imagen,
@@ -478,7 +450,6 @@ def subir_imagen(request):
             )
             historial.save()
 
-            # Preparar los datos para la vista de resultados
             ecuador_tz = pytz.timezone('America/Guayaquil')
             fecha_imagen_local = imagen_obj.fecha.astimezone(ecuador_tz)
 
