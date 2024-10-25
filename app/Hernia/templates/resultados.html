@@ -5,6 +5,7 @@
 {% block content %}
 
 <link rel="stylesheet" href="/app/Hernia/static/styles/resultados.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <div class="container mx-auto mt-10 max-w-3xl">
     <h1 class="title text-center text-3xl font-bold text-black-500 p-4 mb-6 bg-white bg-opacity-50 backdrop-filter backdrop-blur-md rounded-lg shadow-md">
         Resultados Probabilísticos
@@ -31,14 +32,25 @@
 
         <!-- Sección de Imagen -->
         <div class="card-andres bg-white bg-opacity-50 backdrop-filter backdrop-blur-md rounded-lg shadow-md p-4 flex-1">
-            <div class="card-image">
-                {% if imagen_url %}
-                    <!-- Mostrar la imagen procesada con los cuadros delimitadores -->
-                    <img src="{{ imagen_url }}" alt="Imagen procesada" class="w-full h-full object-contain">
-                {% else %}
-                    <!-- Mostrar imagen por defecto si no hay imagen subida -->
-                    <img src="/app/Hernia/static/images/usuario-logo3.png" alt="Imagen por defecto" class="w-full h-auto rounded-t-lg">
-                {% endif %}
+            <div class="relative">
+                <div class="absolute top-2 right-2 flex gap-2 z-10">
+                    <button id="zoom-in" class="bg-white p-2 rounded-full shadow-md hover:bg-gray-200">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                    <button id="zoom-out" class="bg-white p-2 rounded-full shadow-md hover:bg-gray-200">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                </div>
+
+                <div class="overflow-auto" style="width: 100%; height: 400px;">
+                    <div id="image-container" style="position: relative;">
+                        {% if imagen_url %}
+                            <img id="zoom-image" src="{{ imagen_url }}" alt="Imagen procesada" class="transition-transform duration-300" style="transform-origin: top left;">
+                        {% else %}
+                            <img id="zoom-image" src="/app/Hernia/static/images/usuario-logo3.png" alt="Imagen por defecto" class="transition-transform duration-300" style="transform-origin: top left;">
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -50,5 +62,26 @@
         </a>
     </div>
 </div>
+
+<script>
+    const zoomImage = document.getElementById('zoom-image');
+    let scale = 1;
+
+    // Función para aplicar el zoom
+    const applyTransform = () => {
+        zoomImage.style.transform = `scale(${scale})`;
+    };
+
+    // Eventos para zoom
+    document.getElementById('zoom-in').addEventListener('click', () => {
+        scale += 0.1; // Incrementar el zoom
+        applyTransform();
+    });
+
+    document.getElementById('zoom-out').addEventListener('click', () => {
+        scale = Math.max(scale - 0.1, 1); // Decrementar el zoom, mínimo 1
+        applyTransform();
+    });
+</script>
 
 {% endblock %}
