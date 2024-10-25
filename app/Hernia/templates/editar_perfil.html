@@ -22,6 +22,11 @@
                 <div class="mb-4">
                     <label for="email" class="block text-gray-1000 font-semibold mb-2">Correo Electrónico</label>
                     <input type="email" id="email" name="email" value="{{ user_form.email.value|default_if_none:'' }}" class="w-full p-2 border border-gray-1000 rounded">
+                    {% if user_form.email.errors %}
+                        <div class="text-red-500 text-sm">
+                            {{ user_form.email.errors }}
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="mb-4">
