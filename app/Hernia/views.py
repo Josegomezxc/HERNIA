@@ -201,7 +201,6 @@ def generar_pdf_general(request):
     else:
         historiales = Historial.objects.filter(user=request.user)
 
-    # Configurar colores
     titulo_color = HexColor('#4A90E2')  
     texto_color = HexColor('#333333')  
     imagen_fondo_color = HexColor('#F0F0F0') 
@@ -380,7 +379,6 @@ CLIENT = InferenceHTTPClient(
     api_key="8HZzIhc5cRGKVeheO0R7"
 )
 
-
 def subir_imagen(request):
     if request.method == 'POST':
         form = ImagenForm(request.POST, request.FILES)
@@ -403,23 +401,29 @@ def subir_imagen(request):
             img_cv2 = cv2.cvtColor(img_cv2, cv2.COLOR_RGB2BGR)
 
             result = CLIENT.infer(image_url, model_id="proy_2/1")
-
             predictions = result.get('predictions', [])
 
             for pred in predictions:
-                x_center = pred['x']
-                y_center = pred['y']
-                box_width = pred['width']
-                box_height = pred['height']
 
-                x_min = int(x_center - box_width / 2)
-                y_min = int(y_center - box_height / 2)
-                x_max = int(x_center + box_width / 2)
-                y_max = int(y_center + box_height / 2)
+                confidence = pred['confidence'] * 100  
+                class_name = pred['class']
 
-                cv2.rectangle(img_cv2, (x_min, y_min), (x_max, y_max), (0, 0, 255), 2)
-                cv2.putText(img_cv2, f"{pred['class']} {pred['confidence']:.2f}", (x_min, y_min - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+
+                if 'points' in pred:
+                    points = np.array([[p['x'], p['y']] for p in pred['points']], dtype=np.int32)
+
+                    overlay = img_cv2.copy()
+                    cv2.fillPoly(overlay, [points], (0, 0, 255))  
+                    alpha = 0.4 
+                    cv2.addWeighted(overlay, alpha, img_cv2, 1 - alpha, 0, img_cv2)
+
+                    color = (0, 255, 0) if class_name == 'Sin Hernia' else (255, 0, 0)
+                    cv2.polylines(img_cv2, [points], isClosed=True, color=color, thickness=2)
+
+                    x_min = min(points[:, 0])
+                    y_min = min(points[:, 1])
+                    text = f"{class_name} {confidence:.2f}%"
+                    cv2.putText(img_cv2, text, (x_min, y_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
             img_pil_final = Image.fromarray(cv2.cvtColor(img_cv2, cv2.COLOR_BGR2RGB))
             buffer = BytesIO()
@@ -440,7 +444,7 @@ def subir_imagen(request):
                 grupo = "No se encontró una predicción válida."
                 print("El diagnóstico no es válido.")
 
-            porcentaje = round(result['predictions'][0]['confidence'], 2) if result['predictions'] else 0
+            porcentaje = round(result['predictions'][0]['confidence'] * 100, 2) if result['predictions'] else 0
 
             historial = Historial(
                 user=request.user,
@@ -465,6 +469,7 @@ def subir_imagen(request):
         form = ImagenForm()
 
     return render(request, 'subir_imagen.html', {'form': form})
+
 
 
 @login_required
