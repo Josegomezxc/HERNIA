@@ -147,3 +147,7 @@ Chatbot informativo: Responde a preguntas sobre el sistema y diagnósticos de he
   Almacenamiento seguro para las imágenes de resonancias magnéticas.
   # HTML, CSS y JavaScript:
   Para el diseño e interactividad de la interfaz.
+
+## Video de Presentación
+
+[![Presentación del Proyecto](https://img.youtube.com/vi/2xaNaZ9taGk/maxresdefault.jpg)](https://www.youtube.com/watch?v=2xaNaZ9taGk)
