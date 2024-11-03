@@ -3,25 +3,24 @@
   Sistema de Detección de Hernias es un proyecto diseñado para ayudar a los profesionales de la salud en el diagnóstico de hernias mediante el análisis de imágenes de resonancias magnéticas. Este sistema utiliza inteligencia artificial para detectar y clasificar hernias, además de ofrecer un módulo de chatbot para responder preguntas comunes.
 
 # Tabla de Contenidos
-
-  - Características principales
-  - Instalación
-    - Requisitos previos
-    - Clonar el repositorio
-    - Crear y activar un entorno virtual
-    - Instalar las dependencias
-    - Configurar la base de datos
-    - Aplicar migraciones y crear un superusuario
-    - Configurar AWS S3
-    - Ejecutar el servidor
-  - Flujo del Sistema
-  - Guía de Usuario
-    - Registro e inicio de sesión
-    - Carga de Imágenes
-    - Visualización de Resultados
-    - Generación de Reportes en PDF
-    - Uso del Chatbot
-  -Tecnologías Utilizadas
+- [Características principales](#características-principales)
+- [Instalación](#instalación)
+  - [Requisitos previos](#requisitos-previos)
+  - [Clonar el repositorio](#clonar-el-repositorio)
+  - [Crear y activar un entorno virtual](#crear-y-activar-un-entorno-virtual)
+  - [Instalar las dependencias](#instalar-las-dependencias)
+  - [Configurar la base de datos](#configurar-la-base-de-datos)
+  - [Aplicar migraciones y crear un superusuario](#aplicar-migraciones-y-crear-un-superusuario)
+  - [Configurar AWS S3](#configurar-aws-s3)
+  - [Ejecutar el servidor](#ejecutar-el-servidor)
+- [Flujo del Sistema](#flujo-del-sistema)
+- [Guía de Usuario](#guía-de-usuario)
+  - [Registro e inicio de sesión](#registro-e-inicio-de-sesión)
+  - [Carga de Imágenes](#carga-de-imágenes)
+  - [Visualización de Resultados](#visualización-de-resultados)
+  - [Generación de Reportes en PDF](#generación-de-reportes-en-pdf)
+  - [Uso del Chatbot](#uso-del-chatbot)
+- [Tecnologías Utilizadas](#tecnologías-utilizadas)
 
 # Características principales
 
