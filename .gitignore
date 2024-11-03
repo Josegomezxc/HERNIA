@@ -1,2 +1,4 @@
 .env
 ent_med/
+__pycache__/
+*.pyc
