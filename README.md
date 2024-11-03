@@ -137,7 +137,8 @@ Chatbot informativo: Responde a preguntas sobre el sistema y diagnósticos de he
   
   # Tecnologías Utilizadas
   
-  # Django: Framework principal para el desarrollo del sistema web.
+  # Django: 
+  Framework principal para el desarrollo del sistema web.
   
   # PostgreSQL:
   Base de datos para almacenar información de usuarios y resultados.
