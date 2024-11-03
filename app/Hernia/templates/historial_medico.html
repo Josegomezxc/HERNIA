@@ -25,11 +25,7 @@
             {% for item in page_obj %}
             <tr>
                 <td class="py-2 px-4 text-center">{{ item.user.username }}</td>
-<<<<<<< HEAD
-                <td class="py-2 px-4 text-center">{{ item.paciente_nombre }}</td> <!-- Aquí se agrega el nombre del paciente -->
-=======
-                <td class="py-2 px-4 text-center">{{ item.paciente_nombre }}</td> 
->>>>>>> c0d8e985b5679d23b2c3c18f076c81c79d642dca
+                <td class="py-2 px-4 text-center">{{ item.paciente_nombre }}</td>
                 <td class="py-2 px-4 text-center">{{ item.fecha_imagen }}</td>
                 <td class="py-2 px-4 text-center">
                     {% if item.imagen %}
