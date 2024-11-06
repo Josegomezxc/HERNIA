@@ -15,6 +15,7 @@ from django.utils.html import strip_tags
 from django.core.mail import send_mail
 from django.conf import settings
 from django.templatetags.static import static
+import math
 
 class ImagenForm(forms.ModelForm):
     class Meta:
@@ -65,10 +66,6 @@ class RegistroForm(forms.ModelForm):
             user.save()
         return user
 
-import math
-from django import forms
-from django.core.exceptions import ValidationError
-from .models import Profile
 
 def verificar_cedula(cedula=""):
     if len(cedula) != 10:
@@ -90,6 +87,8 @@ def verificar_cedula(cedula=""):
             return True
         else:
             raise ValidationError("Cédula inválida")
+        
+        
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
