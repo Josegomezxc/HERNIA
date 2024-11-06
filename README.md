@@ -63,7 +63,7 @@ Chatbot informativo: Responde a preguntas sobre el sistema y diagnósticos de he
     pip install -r requirements.txt
 # Configurar la base de datos
   
-  Configura la base de datos PostgreSQL. Crea un archivo .env en la raíz del proyecto y define las siguientes variables de entorno:
+  Configura la base de datos PostgreSQL. Ve a tu settings.py del proyecto y define las siguientes variables(agrega tu configuración de tu base de datos):
       
       DB_ENGINE=django.db.backends.postgresql
       DB_NAME=nombre_de_la_base_de_datos
@@ -102,7 +102,7 @@ Chatbot informativo: Responde a preguntas sobre el sistema y diagnósticos de he
   El sistema almacena las imágenes en AWS S3 y las prepara para su análisis.
   Análisis de Imágenes y Diagnóstico
   Una vez cargadas, el modelo de IA analiza las imágenes y determina la presencia de hernias.
-  El sistema también clasifica el tipo de hernia presente para ofrecer un diagnóstico más detallado.
+  El sistema también detecta donde está la hernia presente para ofrecer un diagnóstico más detallado.
 # Visualización de Resultados
   
   Los resultados del análisis se presentan en una interfaz amigable para los profesionales de la salud.
